@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_location">
+
+    <fragment
+        android:id="@+id/navigation_location"
+        android:name="edu.hm.cs.ma.demolocationawareapp.ui.location.LocationFragment"
+        android:label="@string/title_location"
+        tools:layout="@layout/fragment_location" />
+
+    <fragment
+        android:id="@+id/navigation_geofence"
+        android:name="edu.hm.cs.ma.demolocationawareapp.ui.geofence.GeofenceFragment"
+        android:label="@string/title_geofence"
+        tools:layout="@layout/fragment_geofence" />
+</navigation>
