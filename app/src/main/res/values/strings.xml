@@ -2,4 +2,5 @@
     <string name="app_name">DemoLocationawareApp</string>
     <string name="title_location">Location</string>
     <string name="title_geofence">Geofence</string>
+    <string name="button">Button</string>
 </resources>
