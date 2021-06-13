@@ -111,6 +111,7 @@ class LocationFragment : Fragment() {
 
     private fun checkSettings() {
         val builder = LocationSettingsRequest.Builder()
+        builder.addLocationRequest(locationRequest)
         val client: SettingsClient = LocationServices.getSettingsClient(requireContext())
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
