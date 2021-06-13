@@ -1,22 +1,28 @@
 package edu.hm.cs.ma.demolocationawareapp.ui.location
 
 import android.Manifest
-import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import edu.hm.cs.ma.demolocationawareapp.databinding.FragmentLocationBinding
-import edu.hm.cs.ma.demolocationawareapp.util.Permission
 
 class LocationFragment : Fragment() {
 
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     private lateinit var locationViewModel: LocationViewModel
     private lateinit var binding: FragmentLocationBinding
 
@@ -40,21 +46,77 @@ class LocationFragment : Fragment() {
             handleButtonClicked()
         }
 
+        requestPermissionLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) {
+                val isGranted: Boolean = it.values.all { isGranted -> isGranted == true }
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                    Log.i("Permission", "Granted")
+                    getLastLocation()
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                    Log.i("Permission", "Not Granted")
+                    locationViewModel.setText("This feature will be unavailable to you until the permission to access your smartphones location is allowed.")
+                }
+            }
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         return root
     }
 
-    @SuppressLint("MissingPermission")
     private fun handleButtonClicked() {
-        val permissions: ArrayList<String> = ArrayList()
-        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        val permissionChecker = Permission(requireContext(), requireActivity())
-        permissionChecker.requestPermissionsIfNecessary(permissions)
+        requestPermission()
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            locationViewModel.setText("Lat: ${location.latitude}\nLon: ${location.longitude}\nAccuracy:${location.accuracy}")
+        getLastLocation()
+    }
+
+    private fun getLastLocation() {
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i("Permission", "Permissions granted. Getting location...")
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                locationViewModel.setText("Lat: ${location.latitude}\nLon: ${location.longitude}\nAccuracy:${location.accuracy}")
+            }
+        }
+
+    }
+
+    private fun requestPermission() {
+        val permissions: ArrayList<String> = arrayListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        val permissionsToRequest = ArrayList<String>()
+        // Check if permissions are already granted
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is not yet granted
+                permissionsToRequest.add(permission)
+            }
+        }
+        // Request permissions now
+        val size = permissionsToRequest.size
+        if (size > 0) {
+            // NOTE: possibility here to check for shouldShowRequestPermissionRationale
+            requestPermissionLauncher.launch(permissions.toTypedArray())
+            Log.i("Permission", "requested permissions")
         }
     }
 }
