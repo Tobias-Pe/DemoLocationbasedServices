@@ -157,9 +157,6 @@ class LocationFragment : Fragment() {
                     locationViewModel.setText("Lat: ${location.latitude}\nLon: ${location.longitude}\nAccuracy:${location.accuracy}")
                 }
             }
-
-        } else {
-            checkSettings()
         }
     }
 
