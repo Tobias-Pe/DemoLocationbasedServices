@@ -117,7 +117,6 @@ class LocationFragment : Fragment() {
                         requireActivity(),
                         exception.statusCode
                     )
-                    Log.i("Settings", "startResolutionForResult")
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
                 }
