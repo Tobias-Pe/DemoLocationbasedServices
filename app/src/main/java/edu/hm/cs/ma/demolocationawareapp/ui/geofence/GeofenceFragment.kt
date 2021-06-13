@@ -1,44 +1,108 @@
 package edu.hm.cs.ma.demolocationawareapp.ui.geofence
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import edu.hm.cs.ma.demolocationawareapp.R
 import edu.hm.cs.ma.demolocationawareapp.databinding.FragmentGeofenceBinding
 
-class GeofenceFragment : Fragment() {
+class GeofenceFragment: Fragment() {
 
-    private lateinit var geofenceViewModel: GeofenceViewModel
-    private var _binding: FragmentGeofenceBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val binding get() = _binding!!
+    private lateinit var binding: FragmentGeofenceBinding
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        geofenceViewModel =
-            ViewModelProvider(this).get(GeofenceViewModel::class.java)
 
-        _binding = FragmentGeofenceBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        binding = DataBindingUtil.inflate(
+            LayoutInflater.from(context),
+            R.layout.fragment_geofence,
+            null,
+            false
+        )
 
-        val textView: TextView = binding.textDashboard
-        geofenceViewModel.text.observe(viewLifecycleOwner, {
-            textView.text = it
-        })
-        return root
+        // ask for permissions
+        initPermissionLauncher()
+        requestPermission()
+
+        binding.startGeofenceActivity.setOnClickListener {
+            val intent = Intent(requireContext(), MapActivity::class.java)
+            startActivity(intent)
+        }
+
+        return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+
+    private fun requestPermission() {
+        val permissions: ArrayList<String> = arrayListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+        val permissionsToRequest = ArrayList<String>()
+        // Check if permissions are already granted
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is not yet granted
+                permissionsToRequest.add(permission)
+            }
+        }
+        // Request permissions now
+        val size = permissionsToRequest.size
+        if (size > 0) {
+            // NOTE: possibility here to check for shouldShowRequestPermissionRationale
+            requestPermissionLauncher.launch(permissions.toTypedArray())
+            Log.i("Permission", "requested permissions")
+        }
     }
+
+    override fun onResume() {
+        super.onResume()
+        binding.startGeofenceActivity.isEnabled =
+            (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        if (binding.startGeofenceActivity.isEnabled) {
+            binding.fragmentGeofencesPermissionsGranted.visibility = View.GONE
+        } else {
+            binding.fragmentGeofencesPermissionsGranted.visibility = View.VISIBLE
+        }
+    }
+
+    private fun initPermissionLauncher() {
+        requestPermissionLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) {
+                val isGranted: Boolean = it.values.all { isGranted -> isGranted == true }
+                // Check permission status after requesting from the user
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                    binding.startGeofenceActivity.isEnabled = true
+                    binding.fragmentGeofencesPermissionsGranted.visibility = View.GONE
+                    Log.i("Permission", "Granted")
+                } else {
+                    binding.fragmentGeofencesPermissionsGranted.visibility = View.VISIBLE
+                    binding.startGeofenceActivity.isEnabled = false
+                    Log.i("Permission", "Not Granted")
+                }
+            }
+    }
+
 }
