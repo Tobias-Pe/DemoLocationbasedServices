@@ -3,6 +3,7 @@ package edu.hm.cs.ma.demolocationawareapp.ui.geofence
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -74,9 +76,16 @@ class GeofenceFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-        binding.startGeofenceActivity.isEnabled =
-            (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
+        val fineLocationPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+        val backgroundLocationPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            binding.startGeofenceActivity.isEnabled = fineLocationPermission == PackageManager.PERMISSION_GRANTED
+                    && backgroundLocationPermission == PackageManager.PERMISSION_GRANTED
+        } else {
+            binding.startGeofenceActivity.isEnabled = fineLocationPermission == PackageManager.PERMISSION_GRANTED
+        }
+
         if (binding.startGeofenceActivity.isEnabled) {
             binding.fragmentGeofencesPermissionsGranted.visibility = View.GONE
         } else {

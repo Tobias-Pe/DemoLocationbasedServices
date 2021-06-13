@@ -174,7 +174,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
             .strokeColor(Color.parseColor(strokeColor))
             .fillColor(Color.parseColor(circleColor)))
 
-        // create circle around second geofence
+        // create circle around third geofence
         mMap.addCircle(CircleOptions()
             .center(centerOfGeofencePerlach)
             .radius(75.0)
