@@ -2,5 +2,8 @@
     <string name="app_name">DemoLocationawareApp</string>
     <string name="title_location">Location</string>
     <string name="title_geofence">Geofence</string>
+    <string name="fragementgeofence_fun">Fun with geofences</string>
+    <string name="fragmentgeofence_permissionHint">You have to grant the location permission!</string>
+    <string name="fragmentGeofence_contentDescription">geofence logo </string>
     <string name="button">Button</string>
 </resources>
