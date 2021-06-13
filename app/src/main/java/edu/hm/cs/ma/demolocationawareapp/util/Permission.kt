@@ -3,10 +3,11 @@ package edu.hm.cs.ma.demolocationawareapp.util
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-const val REQUEST_PERMISSIONS_REQUEST_CODE = 1
+const val REQUEST_PERMISSIONS_REQUEST_CODE = 1234
 
 class Permission(private val context: Context, private val activity: Activity) {
 
