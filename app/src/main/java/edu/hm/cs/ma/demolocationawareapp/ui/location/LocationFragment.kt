@@ -3,7 +3,6 @@ package edu.hm.cs.ma.demolocationawareapp.ui.location
 import android.Manifest
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -27,6 +26,8 @@ class LocationFragment : Fragment() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var locationCallback: LocationCallback
 
     private var isLocationClientConfigured: Boolean = false
 
@@ -56,6 +57,14 @@ class LocationFragment : Fragment() {
         initPermissionLauncher()
 
         initLocationProvider()
+
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                locationViewModel.setText("Lat: ${locationResult.lastLocation.latitude}\nLon: ${locationResult.lastLocation.longitude}\nAccuracy:${locationResult.lastLocation.accuracy}")
+            }
+        }
 
         isLocationClientConfigured = false
 
@@ -102,7 +111,6 @@ class LocationFragment : Fragment() {
 
     private fun checkSettings() {
         val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(locationRequest)
         val client: SettingsClient = LocationServices.getSettingsClient(requireContext())
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
@@ -144,18 +152,9 @@ class LocationFragment : Fragment() {
             if (!isLocationClientConfigured) {
                 fusedLocationClient.requestLocationUpdates(
                     locationRequest,
-                    object : LocationCallback() {
-                        override fun onLocationResult(locationResult: LocationResult) {
-                            super.onLocationResult(locationResult)
-                        }
-                    }, Looper.myLooper()
+                    locationCallback, Looper.getMainLooper()
                 )
                 isLocationClientConfigured = true
-            }
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                if (location != null) {
-                    locationViewModel.setText("Lat: ${location.latitude}\nLon: ${location.longitude}\nAccuracy:${location.accuracy}")
-                }
             }
         }
     }
@@ -182,5 +181,15 @@ class LocationFragment : Fragment() {
             requestPermissionLauncher.launch(permissions.toTypedArray())
             Log.i("Permission", "requested permissions")
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isLocationClientConfigured = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }
