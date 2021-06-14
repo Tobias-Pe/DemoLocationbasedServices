@@ -2,6 +2,14 @@
 
 The project uses simple examples to demonstrate the possibilities of android location services
 
+## Basic Location Service
+
+If you want a guided self learning tour, check out the BasicLocation_Part* branches.
+
+There you will implement and learn how to use the simple Location Service FusedLocationProviderClient, by following the TODO's.
+
+Have fun coding! 😉
+
 ## Getting started - Get a Google Maps Api Key:
 You need an api key for google maps to use the app.
 
