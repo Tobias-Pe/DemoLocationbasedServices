@@ -3,8 +3,8 @@ package edu.hm.cs.ma.demolocationawareapp.ui.location
 import android.Manifest
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,8 +23,11 @@ import edu.hm.cs.ma.demolocationawareapp.databinding.FragmentLocationBinding
 
 class LocationFragment : Fragment() {
 
+    // TODO 1: Declare LocationRequest
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-    // TODO 1: Declare FusedLocationProviderClient
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    // TODO 7: Declare boolean isLocationClientConfigured
 
     private lateinit var locationViewModel: LocationViewModel
     private lateinit var binding: FragmentLocationBinding
@@ -57,8 +60,93 @@ class LocationFragment : Fragment() {
     }
 
     private fun initLocationProvider() {
-        // TODO 2: init fusedLocationClient here
-        TODO("Not yet implemented")
+        // TODO 2: init locationRequest
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
+        // TODO 4: check the settings
+    }
+
+    private fun checkSettings() {
+        val builder = LocationSettingsRequest.Builder()
+        // TODO 3: add locationRequest to builder
+        val client: SettingsClient = LocationServices.getSettingsClient(requireContext())
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    exception.startResolutionForResult(
+                        requireActivity(),
+                        exception.statusCode
+                    )
+                    Log.i("Settings", "startResolutionForResult")
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
+    }
+
+    private fun initLocationCallback() {
+        // TODO 6: init locationCallback here
+
+        // TODO 8: set isLocationClientConfigured = false here
+    }
+
+    private fun handleButtonClicked() {
+        requestPermission()
+
+        getLastLocation()
+    }
+
+    private fun getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO 10: wrap fusedLocationClient.requestLocationUpdates() with check on isLocationClientConfigured
+
+            // TODO 5: use fusedLocationClient with locationRequest settings
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                location?.let {
+                    locationViewModel.setText("Lat: ${location.latitude}\nLong: ${location.longitude}")
+                }
+            }
+        }
+    }
+
+    private fun requestPermission() {
+        val permissions: ArrayList<String> = arrayListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        val permissionsToRequest = ArrayList<String>()
+        // Check if permissions are already granted
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is not yet granted
+                permissionsToRequest.add(permission)
+            }
+        }
+        // Request permissions now
+        val size = permissionsToRequest.size
+        if (size > 0) {
+            // NOTE: possibility here to check for shouldShowRequestPermissionRationale
+            requestPermissionLauncher.launch(permissions.toTypedArray())
+            Log.i("Permission", "requested permissions")
+        }
     }
 
     private fun initPermissionLauncher() {
@@ -85,37 +173,5 @@ class LocationFragment : Fragment() {
             }
     }
 
-    private fun handleButtonClicked() {
-        requestPermission()
-
-        getLastLocation()
-    }
-
-    private fun getLastLocation() {
-        // TODO 3: add onSuccessListener on lastLocation
-    }
-
-    private fun requestPermission() {
-        val permissions: ArrayList<String> = arrayListOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        val permissionsToRequest = ArrayList<String>()
-        // Check if permissions are already granted
-        for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(requireContext(), permission)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Permission is not yet granted
-                permissionsToRequest.add(permission)
-            }
-        }
-        // Request permissions now
-        val size = permissionsToRequest.size
-        if (size > 0) {
-            // NOTE: possibility here to check for shouldShowRequestPermissionRationale
-            requestPermissionLauncher.launch(permissions.toTypedArray())
-            Log.i("Permission", "requested permissions")
-        }
-    }
+    // TODO 9: overwrite onStop and onResume
 }
