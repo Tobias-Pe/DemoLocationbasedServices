@@ -10,6 +10,8 @@ There you will implement and learn how to use the simple Location Service FusedL
 
 Have fun coding! 😉
 
+PS: If you get stuck, just make a diff to main or the next Part to see the solution!
+
 ## Getting started - Get a Google Maps Api Key:
 You need an api key for google maps to use the app.
 
