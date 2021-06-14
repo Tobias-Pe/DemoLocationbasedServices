@@ -23,13 +23,8 @@ import edu.hm.cs.ma.demolocationawareapp.databinding.FragmentLocationBinding
 
 class LocationFragment : Fragment() {
 
-    private lateinit var locationRequest: LocationRequest
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    private lateinit var locationCallback: LocationCallback
-
-    private var isLocationClientConfigured: Boolean = false
+    // TODO 1: Declare FusedLocationProviderClient
 
     private lateinit var locationViewModel: LocationViewModel
     private lateinit var binding: FragmentLocationBinding
@@ -58,17 +53,12 @@ class LocationFragment : Fragment() {
 
         initLocationProvider()
 
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                super.onLocationResult(locationResult)
-                locationViewModel.setText("Lat: ${locationResult.lastLocation.latitude}\nLon: ${locationResult.lastLocation.longitude}\nAccuracy:${locationResult.lastLocation.accuracy}")
-            }
-        }
-
-        isLocationClientConfigured = false
-
         return root
+    }
+
+    private fun initLocationProvider() {
+        // TODO 2: init fusedLocationClient here
+        TODO("Not yet implemented")
     }
 
     private fun initPermissionLauncher() {
@@ -95,44 +85,6 @@ class LocationFragment : Fragment() {
             }
     }
 
-    private fun initLocationProvider() {
-        // Settings for fusedLocationClient
-        locationRequest = LocationRequest.create().apply {
-            interval = 100
-            fastestInterval = 100
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        // Init the LocationProvider
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-
-        checkSettings()
-    }
-
-    private fun checkSettings() {
-        val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(locationRequest)
-        val client: SettingsClient = LocationServices.getSettingsClient(requireContext())
-        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-
-        task.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException) {
-                // Location settings are not satisfied, but this can be fixed
-                // by showing the user a dialog.
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        exception.statusCode
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
-            }
-        }
-    }
-
     private fun handleButtonClicked() {
         requestPermission()
 
@@ -140,24 +92,7 @@ class LocationFragment : Fragment() {
     }
 
     private fun getLastLocation() {
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-
-            if (!isLocationClientConfigured) {
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback, Looper.getMainLooper()
-                )
-                isLocationClientConfigured = true
-            }
-        }
+        // TODO 3: add onSuccessListener on lastLocation
     }
 
     private fun requestPermission() {
@@ -182,15 +117,5 @@ class LocationFragment : Fragment() {
             requestPermissionLauncher.launch(permissions.toTypedArray())
             Log.i("Permission", "requested permissions")
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        isLocationClientConfigured = false
-    }
-
-    override fun onStop() {
-        super.onStop()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }
